@@ -1,0 +1,35 @@
+name: Notify on Discord
+
+on:
+  push:
+    branches:
+      - main  # change if needed
+  pull_request:
+    types: [opened, closed, reopened]
+
+jobs:
+  push-notify:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Push notification
+        uses: Ilshidur/action-discord@0.4.0
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: "New push on {{ EVENT_PAYLOAD.repository.full_name }} by {{ GITHUB_ACTOR }}"
+
+  pr-notify:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull Request notification
+        uses: Ilshidur/action-discord@0.4.0
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: |
+            Pull Request **{{ EVENT_PAYLOAD.pull_request.title }}**
+            Author: {{ EVENT_PAYLOAD.pull_request.user.login }}
+            Link: {{ EVENT_PAYLOAD.pull_request.html_url }}
+            Status: {{ EVENT_PAYLOAD.action }}
