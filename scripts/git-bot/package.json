@@ -1,0 +1,16 @@
+{
+  "name": "git-bot",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Bot para automatizar push, PR e notificação no Discord com rollback",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "node-fetch": "^3.3.2"
+  },
+  "author": "Eduardo Ferraz",
+  "license": "MIT"
+}
