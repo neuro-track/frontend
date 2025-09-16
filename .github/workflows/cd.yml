@@ -19,8 +19,8 @@ jobs:
                   ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
             - name: Copy files to remote server using SCP
               run: |
-                  scp -o StrictHostKeyChecking=no -r ./ user@your-server-ip:/path/to/deploy/
+                  scp -o StrictHostKeyChecking=no -r ./ user@extensaoads2.sj.ifsc.edu.br:/opt/reps
 
             - name: Run remote command via SSH
               run: |
-                  ssh -o StrictHostK3eyChecking=no user@your-server-ip "cd /path/to/deploy && your-command-here"
+                  ssh -o StrictHostK3eyChecking=no user@extensaoads2.sj.ifsc.edu.br "mkdir /opt/reps && cd /opt/reps && npm install && npm run build"
