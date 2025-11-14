@@ -6,9 +6,9 @@ substitutions:
   _IMAGE: frontend
   _TAG: $SHORT_SHA
 
-  serviceAccount: projects/${_PROJECT}/serviceAccounts/${_SERVICE_ACCOUNT}
+serviceAccount: projects/${_PROJECT}/serviceAccounts/${_SERVICE_ACCOUNT}
 options:
-  logging: CLOUD_LOGGING_ONLY
+  logging: GCS_ONLY
 steps:
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: bash
