@@ -8,7 +8,7 @@ substitutions:
 
 serviceAccount: projects/${_PROJECT}/serviceAccounts/${_SERVICE_ACCOUNT}
 options:
-  logging: GCS_ONLY
+  logging: CLOUD_LOGGING_ONLY
 steps:
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: bash
