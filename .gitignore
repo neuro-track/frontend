@@ -83,3 +83,5 @@ terraform.rc
 
 # Credentials
 credentials*json
+
+.terraform.lock.hcl
