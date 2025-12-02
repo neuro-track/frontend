@@ -110,3 +110,25 @@ export interface Favorite {
   resourceType: 'course' | 'node';
   createdAt: Date;
 }
+
+export interface LessonContentData {
+  videos: Array<{
+    id: string;
+    title: string;
+    description: string;
+    thumbnailUrl: string;
+    channelTitle: string;
+    duration: string;
+    viewCount: string;
+    publishedAt: string;
+  }>;
+  article: {
+    title: string;
+    extract: string;
+    fullUrl: string;
+    thumbnail?: string;
+    categories?: string[];
+  } | null;
+  relatedTopics: string[];
+  estimatedReadingTime: number;
+}

@@ -4,7 +4,7 @@ import { Auth } from './components/Auth';
 import { Dashboard } from './components/Dashboard';
 import { UnifiedLearningGraph } from './components/UnifiedLearningGraph';
 import { CourseScreen } from './components/CourseScreen';
-import { LessonScreen } from './components/LessonScreen';
+import { LessonScreenEnhanced } from './components/LessonScreenEnhanced';
 import { ProfileScreen } from './components/ProfileScreen';
 import { ChatScreen } from './components/ChatScreen';
 import { CoursesScreen } from './components/CoursesScreen';
@@ -42,7 +42,7 @@ function App() {
         />
         <Route
           path="/lesson/:courseId/:nodeId"
-          element={isAuthenticated ? <LessonScreen /> : <Navigate to="/" />}
+          element={isAuthenticated ? <LessonScreenEnhanced /> : <Navigate to="/" />}
         />
         <Route
           path="/profile"
