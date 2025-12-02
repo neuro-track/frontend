@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useLearningStore } from '../store/useLearningStore';
+import { useNotificationStore } from '../store/useNotificationStore';
+import { useAuthStore } from '../store/useAuthStore';
+import { useFavoritesStore } from '../store/useFavoritesStore';
 import { Navbar } from './Navbar';
 import { VideoList } from './VideoPlayer';
 import { WikipediaContent } from './WikipediaContent';
 import { NotesPanel } from './NotesPanel';
 import { contentGeneratorService, LessonContent } from '../services/contentGeneratorService';
+import confetti from 'canvas-confetti';
 import {
   ArrowLeft,
   CheckCircle,
@@ -15,6 +19,8 @@ import {
   FileText,
   AlertCircle,
   Loader,
+  Sparkles,
+  Star,
 } from 'lucide-react';
 
 type TabType = 'videos' | 'article' | 'notes';
@@ -22,11 +28,15 @@ type TabType = 'videos' | 'article' | 'notes';
 export const LessonScreenEnhanced = () => {
   const { courseId, nodeId } = useParams();
   const navigate = useNavigate();
-  const { courses, updateNodeStatus } = useLearningStore();
+  const { courses, updateNodeStatus, unlockDependentNodes } = useLearningStore();
+  const { addNotification } = useNotificationStore();
+  const { user } = useAuthStore();
+  const { favorites, addFavorite, removeFavorite } = useFavoritesStore();
   const [activeTab, setActiveTab] = useState<TabType>('videos');
   const [lessonContent, setLessonContent] = useState<LessonContent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   const course = courses.find(c => c.id === courseId);
   const node = course?.nodes.find(n => n.id === nodeId);
@@ -34,6 +44,45 @@ export const LessonScreenEnhanced = () => {
   const previousNode = currentIndex > 0 ? course?.nodes[currentIndex - 1] : null;
   const nextNode =
     currentIndex >= 0 && course ? course.nodes[currentIndex + 1] : null;
+
+  // Calculate course progress
+  const completedNodes = course?.nodes.filter(n => n.status === 'completed').length || 0;
+  const totalNodes = course?.nodes.length || 0;
+  const courseProgress = totalNodes > 0 ? Math.round((completedNodes / totalNodes) * 100) : 0;
+
+  // Check if lesson is favorited
+  const isFavorited = favorites.some(
+    fav => fav.resourceId === nodeId && fav.resourceType === 'node'
+  );
+
+  const handleToggleFavorite = () => {
+    if (!user || !nodeId) return;
+
+    if (isFavorited) {
+      const favorite = favorites.find(
+        fav => fav.resourceId === nodeId && fav.resourceType === 'node'
+      );
+      if (favorite) {
+        removeFavorite(favorite.id);
+        addNotification({
+          userId: user.id,
+          type: 'milestone',
+          title: 'Removido dos Favoritos',
+          message: `"${node?.title}" foi removido dos favoritos`,
+          icon: '⭐',
+        });
+      }
+    } else {
+      addFavorite(nodeId, 'node', user.id);
+      addNotification({
+        userId: user.id,
+        type: 'milestone',
+        title: 'Adicionado aos Favoritos',
+        message: `"${node?.title}" foi adicionado aos favoritos`,
+        icon: '⭐',
+      });
+    }
+  };
 
   useEffect(() => {
     if (node) {
@@ -84,9 +133,65 @@ export const LessonScreenEnhanced = () => {
   }
 
   const handleComplete = () => {
+    // Mark current node as completed
     updateNodeStatus(courseId!, nodeId!, 'completed', 100);
-    if (nextNode) {
-      updateNodeStatus(courseId!, nextNode.id, 'available', 0);
+
+    // Show success message
+    setShowSuccessMessage(true);
+    setTimeout(() => setShowSuccessMessage(false), 3000);
+
+    // Celebration confetti animation
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+
+    // Send completion notification
+    if (user) {
+      addNotification({
+        userId: user.id,
+        type: 'achievement',
+        title: 'Lição Completa! 🎉',
+        message: `Você completou "${node?.title}"`,
+        icon: '✅',
+      });
+    }
+
+    // Check which nodes were unlocked (this is now automatic in updateNodeStatus)
+    const unlockedNodeIds = unlockDependentNodes(courseId!, nodeId!);
+
+    // Send notifications for each unlocked node with extra confetti
+    if (user && unlockedNodeIds.length > 0) {
+      // Extra confetti for unlocking new lessons
+      setTimeout(() => {
+        confetti({
+          particleCount: 50,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 }
+        });
+        confetti({
+          particleCount: 50,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 }
+        });
+      }, 300);
+
+      unlockedNodeIds.forEach(unlockedNodeId => {
+        const unlockedNode = course?.nodes.find(n => n.id === unlockedNodeId);
+        if (unlockedNode) {
+          addNotification({
+            userId: user.id,
+            type: 'milestone',
+            title: 'Nova Lição Desbloqueada! 🔓',
+            message: `"${unlockedNode.title}" agora está disponível`,
+            icon: '🔓',
+            link: `/lesson/${courseId}/${unlockedNodeId}`,
+          });
+        }
+      });
     }
   };
 
@@ -102,14 +207,39 @@ export const LessonScreenEnhanced = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Breadcrumb */}
-            <button
-              onClick={() => navigate(`/course/${courseId}`)}
-              className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-            >
-              <ArrowLeft size={20} />
-              <span className="text-sm font-medium">Voltar ao Curso</span>
-            </button>
+            {/* Breadcrumb and Course Progress */}
+            <div className="space-y-3">
+              <button
+                onClick={() => navigate(`/course/${courseId}`)}
+                className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                <ArrowLeft size={20} />
+                <span className="text-sm font-medium">Voltar ao Curso</span>
+              </button>
+
+              {/* Course Progress Bar */}
+              <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Progresso do Curso
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-500">
+                      {completedNodes} de {totalNodes} lições
+                    </span>
+                  </div>
+                  <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                    {courseProgress}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                  <div
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-2.5 rounded-full transition-all duration-500"
+                    style={{ width: `${courseProgress}%` }}
+                  />
+                </div>
+              </div>
+            </div>
 
             {/* Lesson Info Card */}
             <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
@@ -120,12 +250,27 @@ export const LessonScreenEnhanced = () => {
                   </h1>
                   <p className="text-gray-600 dark:text-gray-400">{node.description}</p>
                 </div>
-                {node.status === 'completed' && (
-                  <div className="flex items-center gap-2 text-green-600 dark:text-green-400 ml-4">
-                    <CheckCircle size={20} fill="currentColor" />
-                    <span className="text-sm font-medium">Completo</span>
-                  </div>
-                )}
+                <div className="flex items-center gap-3 ml-4">
+                  {/* Favorite Button */}
+                  <button
+                    onClick={handleToggleFavorite}
+                    className={`p-2 rounded-lg transition-all ${
+                      isFavorited
+                        ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/50'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    }`}
+                    title={isFavorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+                  >
+                    <Star size={20} fill={isFavorited ? 'currentColor' : 'none'} />
+                  </button>
+                  {/* Completion Badge */}
+                  {node.status === 'completed' && (
+                    <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                      <CheckCircle size={20} fill="currentColor" />
+                      <span className="text-sm font-medium">Completo</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Meta Info */}
@@ -172,12 +317,28 @@ export const LessonScreenEnhanced = () => {
                 </div>
               )}
 
+              {/* Success Message */}
+              {showSuccessMessage && (
+                <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border-2 border-green-500 dark:border-green-400 rounded-lg flex items-center gap-3 animate-pulse">
+                  <Sparkles className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  <div className="flex-1">
+                    <p className="font-semibold text-green-800 dark:text-green-200">
+                      Parabéns! 🎉
+                    </p>
+                    <p className="text-sm text-green-700 dark:text-green-300">
+                      Você completou esta lição com sucesso!
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Complete Button */}
               {node.status !== 'completed' && (
                 <button
                   onClick={handleComplete}
-                  className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 group"
                 >
+                  <CheckCircle className="w-5 h-5 group-hover:rotate-12 transition-transform" />
                   Marcar como Completo
                 </button>
               )}

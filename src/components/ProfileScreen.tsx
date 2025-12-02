@@ -1,9 +1,7 @@
-import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
 import { useLearningStore } from '../store/useLearningStore';
 import { getMockAchievements } from '../data/mockData';
 import {
-  ArrowLeft,
   BookOpen,
   Clock,
   Target,
@@ -13,9 +11,11 @@ import {
   Calendar,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { PageContainer } from './PageContainer';
+import { PageHeader } from './PageHeader';
+import { Card } from './Card';
 
 export const ProfileScreen = () => {
-  const navigate = useNavigate();
   const { user } = useAuthStore();
   const { courses } = useLearningStore();
   const achievements = getMockAchievements();
@@ -52,35 +52,51 @@ export const ProfileScreen = () => {
   ).length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            <ArrowLeft size={20} />
-            <span className="text-sm font-medium">Back to Dashboard</span>
-          </button>
-        </div>
-      </header>
+    <PageContainer>
+      <div className="space-y-6">
+        <PageHeader
+          title={user?.name || 'Profile'}
+          description={user?.email}
+          backTo={{ label: 'Voltar ao Dashboard', path: '/dashboard' }}
+          actions={
+            <button className="px-6 py-3 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+              Edit Profile
+            </button>
+          }
+          stats={[
+            {
+              label: 'Completion',
+              value: `${Math.round((completedNodes / totalNodes) * 100)}%`,
+            },
+            {
+              label: 'Completed',
+              value: completedNodes,
+            },
+            {
+              label: 'Time Spent',
+              value: `${Math.round(totalMinutes / 60)}h`,
+            },
+            {
+              label: 'Achievements',
+              value: unlockedAchievements,
+            },
+          ]}
+        />
 
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        {/* Profile Header */}
-        <div className="bg-white rounded-lg border border-gray-200 p-8 mb-8">
+        {/* Profile Info Card */}
+        <Card>
           <div className="flex items-center gap-6">
             <img
               src={user?.avatar}
               alt={user?.name}
-              className="w-24 h-24 rounded-full border-2 border-gray-200"
+              className="w-24 h-24 rounded-full border-2 border-gray-200 dark:border-gray-700"
             />
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-900 mb-1">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
                 {user?.name}
-              </h1>
-              <p className="text-gray-600 mb-3">{user?.email}</p>
-              <div className="flex items-center gap-4 text-sm text-gray-600">
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-3">{user?.email}</p>
+              <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                 <div className="flex items-center gap-2">
                   <Calendar size={16} />
                   <span>
@@ -93,74 +109,71 @@ export const ProfileScreen = () => {
                 </div>
               </div>
             </div>
-            <button className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors">
-              Edit Profile
-            </button>
           </div>
-        </div>
+        </Card>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                <Target size={24} className="text-gray-700" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+                <Target size={24} className="text-gray-700 dark:text-gray-300" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {Math.round((completedNodes / totalNodes) * 100)}%
                 </p>
-                <p className="text-sm text-gray-600">Completion</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Completion</p>
               </div>
             </div>
-          </div>
+          </Card>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                <CheckCircle size={24} className="text-gray-700" />
+          <Card>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+                <CheckCircle size={24} className="text-gray-700 dark:text-gray-300" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{completedNodes}</p>
-                <p className="text-sm text-gray-600">Completed</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{completedNodes}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Completed</p>
               </div>
             </div>
-          </div>
+          </Card>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                <Clock size={24} className="text-gray-700" />
+          <Card>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+                <Clock size={24} className="text-gray-700 dark:text-gray-300" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {Math.round(totalMinutes / 60)}h
                 </p>
-                <p className="text-sm text-gray-600">Time Spent</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Time Spent</p>
               </div>
             </div>
-          </div>
+          </Card>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                <Trophy size={24} className="text-gray-700" />
+          <Card>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+                <Trophy size={24} className="text-gray-700 dark:text-gray-300" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {unlockedAchievements}
                 </p>
-                <p className="text-sm text-gray-600">Achievements</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Achievements</p>
               </div>
             </div>
-          </div>
+          </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recent Activity */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+            <Card>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
                 Recent Activity
               </h2>
               <div className="space-y-4">
@@ -168,13 +181,13 @@ export const ProfileScreen = () => {
                   recentActivities.map(activity => (
                     <div
                       key={activity.id}
-                      className="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-0"
+                      className="flex items-start gap-4 pb-4 border-b border-gray-100 dark:border-gray-800 last:border-0"
                     >
                       <div
                         className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${
                           activity.status === 'completed'
-                            ? 'bg-green-100 text-green-600'
-                            : 'bg-blue-100 text-blue-600'
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                            : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                         }`}
                       >
                         {activity.status === 'completed' ? (
@@ -184,19 +197,19 @@ export const ProfileScreen = () => {
                         )}
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900 mb-1">
+                        <p className="font-medium text-gray-900 dark:text-white mb-1">
                           {activity.status === 'completed' ? 'Completed' : 'Started'}{' '}
                           {activity.title}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           {activity.course.title}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                           {format(activity.timestamp, 'MMM d, yyyy • h:mm a')}
                         </p>
                       </div>
                       <div className="flex-shrink-0">
-                        <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
+                        <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full">
                           {activity.type}
                         </span>
                       </div>
@@ -204,18 +217,18 @@ export const ProfileScreen = () => {
                   ))
                 ) : (
                   <div className="text-center py-12">
-                    <TrendingUp size={48} className="text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600">No recent activity</p>
+                    <TrendingUp size={48} className="text-gray-300 dark:text-gray-700 mx-auto mb-4" />
+                    <p className="text-gray-600 dark:text-gray-400">No recent activity</p>
                   </div>
                 )}
               </div>
-            </div>
+            </Card>
           </div>
 
           {/* Achievements */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+          <div className="lg:col-span-1 space-y-6">
+            <Card>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
                 Achievements
               </h2>
               <div className="space-y-4">
@@ -226,8 +239,8 @@ export const ProfileScreen = () => {
                       key={achievement.id}
                       className={`p-4 rounded-lg border transition-colors ${
                         isUnlocked
-                          ? 'bg-gray-50 border-gray-300'
-                          : 'bg-white border-gray-200'
+                          ? 'bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-700'
+                          : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800'
                       }`}
                     >
                       <div className="flex items-start gap-3 mb-3">
@@ -241,21 +254,21 @@ export const ProfileScreen = () => {
                         <div className="flex-1">
                           <h3
                             className={`font-medium mb-1 ${
-                              isUnlocked ? 'text-gray-900' : 'text-gray-500'
+                              isUnlocked ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-500'
                             }`}
                           >
                             {achievement.title}
                           </h3>
-                          <p className="text-xs text-gray-600">
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
                             {achievement.description}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-gray-200 rounded-full h-2">
+                        <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                           <div
                             className={`h-2 rounded-full transition-all ${
-                              isUnlocked ? 'bg-gray-900' : 'bg-gray-400'
+                              isUnlocked ? 'bg-blue-600' : 'bg-gray-400 dark:bg-gray-600'
                             }`}
                             style={{
                               width: `${
@@ -264,7 +277,7 @@ export const ProfileScreen = () => {
                             }}
                           />
                         </div>
-                        <span className="text-xs text-gray-500 font-medium">
+                        <span className="text-xs text-gray-500 dark:text-gray-500 font-medium">
                           {achievement.progress}/{achievement.total}
                         </span>
                       </div>
@@ -272,11 +285,11 @@ export const ProfileScreen = () => {
                   );
                 })}
               </div>
-            </div>
+            </Card>
 
             {/* Course Progress */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6 mt-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+            <Card>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
                 Course Progress
               </h2>
               <div className="space-y-4">
@@ -290,16 +303,16 @@ export const ProfileScreen = () => {
                   return (
                     <div key={course.id}>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-700">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                           {course.title}
                         </span>
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
                           {progress}/{total}
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                         <div
-                          className="bg-gray-900 h-2 rounded-full transition-all"
+                          className="bg-gradient-to-r from-blue-600 to-blue-500 h-2 rounded-full transition-all"
                           style={{ width: `${percentage}%` }}
                         />
                       </div>
@@ -307,10 +320,10 @@ export const ProfileScreen = () => {
                   );
                 })}
               </div>
-            </div>
+            </Card>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </PageContainer>
   );
 };

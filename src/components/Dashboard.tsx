@@ -7,9 +7,9 @@ import {
   TrendingUp,
   MessageSquare,
   Map,
-  Users,
   Star,
   ChevronRight,
+  CheckCircle,
 } from 'lucide-react';
 
 export const Dashboard = () => {
@@ -22,35 +22,8 @@ export const Dashboard = () => {
     0
   );
 
-  const mockCommunityPosts = [
-    {
-      id: 1,
-      title: 'Python for Beginners',
-      author: 'Ana Silva',
-      image: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=600&h=400&fit=crop',
-      tags: ['Programming', 'Backend'],
-      students: 1240,
-      rating: 4.8,
-    },
-    {
-      id: 2,
-      title: 'Modern UI/UX Design',
-      author: 'Carlos Mendes',
-      image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&h=400&fit=crop',
-      tags: ['Design', 'Creativity'],
-      students: 892,
-      rating: 4.9,
-    },
-    {
-      id: 3,
-      title: 'Advanced Digital Marketing',
-      author: 'Lucia Santos',
-      image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=600&h=400&fit=crop',
-      tags: ['Marketing', 'Business'],
-      students: 756,
-      rating: 4.7,
-    },
-  ];
+  // Get other available courses (excluding first 2 shown in recommended)
+  const otherCourses = courses.slice(2);
 
   const streakDays = 7;
   const totalXP = completedNodes * 100;
@@ -108,34 +81,52 @@ export const Dashboard = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-gray-600">Current Level</p>
-              <TrendingUp size={18} className="text-gray-400" />
+              <p className="text-sm text-gray-600 dark:text-gray-400">Current Level</p>
+              <TrendingUp size={18} className="text-blue-500 dark:text-blue-400" />
             </div>
-            <p className="text-3xl font-bold text-gray-900">{currentLevel}</p>
+            <p className="text-3xl font-bold text-gray-900 dark:text-white">{currentLevel}</p>
+            <div className="mt-2">
+              <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500 mb-1">
+                <span>Progress to Level {currentLevel + 1}</span>
+                <span>{(totalXP % 500)} / 500 XP</span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                <div
+                  className="bg-blue-600 h-1.5 rounded-full transition-all"
+                  style={{ width: `${((totalXP % 500) / 500) * 100}%` }}
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-gray-600">Total XP</p>
-              <Star size={18} className="text-gray-400" />
+              <p className="text-sm text-gray-600 dark:text-gray-400">Total XP</p>
+              <Star size={18} className="text-yellow-500 dark:text-yellow-400" />
             </div>
-            <p className="text-3xl font-bold text-gray-900">{totalXP}</p>
+            <p className="text-3xl font-bold text-gray-900 dark:text-white">{totalXP}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+              {completedNodes} lessons completed
+            </p>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-gray-600">Streak</p>
-              <TrendingUp size={18} className="text-gray-400" />
+              <p className="text-sm text-gray-600 dark:text-gray-400">Streak</p>
+              <TrendingUp size={18} className="text-orange-500 dark:text-orange-400" />
             </div>
-            <p className="text-3xl font-bold text-gray-900">{streakDays} days</p>
+            <p className="text-3xl font-bold text-gray-900 dark:text-white">{streakDays} days</p>
+            <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+              Keep learning to maintain your streak! 🔥
+            </p>
           </div>
         </div>
 
         {/* Recommended for You */}
         <div className="mb-8">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Recommended for You</h3>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Recommended for You</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {courses.slice(0, 2).map((course) => {
               const completedCount = course.nodes.filter(
@@ -146,39 +137,42 @@ export const Dashboard = () => {
                 (sum, n) => sum + n.estimatedMinutes,
                 0
               );
+              const progressPercent = (completedCount / totalCount) * 100;
 
               return (
                 <div
                   key={course.id}
-                  className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-shadow cursor-pointer"
+                  className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 hover:shadow-lg dark:hover:shadow-gray-900/50 transition-all cursor-pointer group"
                   onClick={() => navigate(`/course/${course.id}`)}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <span className="inline-block px-3 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full mb-3">
+                      <span className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-full mb-3">
                         {course.category}
                       </span>
-                      <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                         {course.title}
                       </h4>
-                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                      <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-4">
                         <span>{totalCount} lessons</span>
                         <span>{Math.round(totalMinutes / 60)}h {totalMinutes % 60}min</span>
                       </div>
                     </div>
                   </div>
                   <div className="mb-4">
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-2">
+                      <span>Progress</span>
+                      <span className="font-semibold">{Math.round(progressPercent)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div
-                        className="bg-gray-900 h-2 rounded-full transition-all"
-                        style={{
-                          width: `${(completedCount / totalCount) * 100}%`,
-                        }}
+                        className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all"
+                        style={{ width: `${progressPercent}%` }}
                       />
                     </div>
                   </div>
-                  <button className="flex items-center gap-2 text-gray-900 font-medium hover:gap-3 transition-all">
-                    Start
+                  <button className="flex items-center gap-2 text-gray-900 dark:text-white font-medium group-hover:gap-3 transition-all">
+                    {completedCount === 0 ? 'Start Learning' : 'Continue Learning'}
                     <ChevronRight size={16} />
                   </button>
                 </div>
@@ -187,56 +181,62 @@ export const Dashboard = () => {
           </div>
         </div>
 
-        {/* Popular in Community */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-bold text-gray-900">Popular in Community</h3>
-            <button className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900">
-              View all
-              <ChevronRight size={16} />
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {mockCommunityPosts.map((post) => (
-              <div
-                key={post.id}
-                className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+        {/* More Courses to Explore */}
+        {otherCourses.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">More Courses to Explore</h3>
+              <button
+                onClick={() => navigate('/courses')}
+                className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
               >
-                <div className="aspect-video bg-gray-200 overflow-hidden">
-                  <img
-                    src={post.image}
-                    alt={post.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="p-5">
-                  <h4 className="font-semibold text-gray-900 mb-2">{post.title}</h4>
-                  <p className="text-sm text-gray-600 mb-3">by {post.author}</p>
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {post.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded"
-                      >
-                        {tag}
+                View all
+                <ChevronRight size={16} />
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {otherCourses.slice(0, 3).map((course) => {
+                const totalLessons = course.nodes.length;
+                const completedLessons = course.nodes.filter(n => n.status === 'completed').length;
+
+                return (
+                  <div
+                    key={course.id}
+                    onClick={() => navigate(`/course/${course.id}`)}
+                    className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden hover:shadow-lg dark:hover:shadow-gray-900/50 transition-all cursor-pointer group"
+                  >
+                    <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                      <BookOpen className="w-16 h-16 text-white opacity-80" />
+                    </div>
+                    <div className="p-5">
+                      <span className="inline-block px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium rounded mb-2">
+                        {course.category}
                       </span>
-                    ))}
+                      <h4 className="font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        {course.title}
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                        {course.description}
+                      </p>
+                      <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                        <span className="flex items-center gap-1">
+                          <BookOpen size={14} />
+                          {totalLessons} lessons
+                        </span>
+                        {completedLessons > 0 && (
+                          <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                            <CheckCircle size={14} />
+                            {completedLessons} done
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <span className="flex items-center gap-1">
-                      <Users size={14} />
-                      {post.students}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Star size={14} fill="currentColor" />
-                      {post.rating}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </main>
     </div>
   );
