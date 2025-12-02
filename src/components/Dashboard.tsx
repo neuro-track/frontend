@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { useLearningStore } from '../store/useLearningStore';
 import { useAuthStore } from '../store/useAuthStore';
+import { Navbar } from './Navbar';
 import {
   BookOpen,
-  Bell,
   TrendingUp,
   MessageSquare,
   Map,
@@ -57,76 +57,13 @@ export const Dashboard = () => {
   const currentLevel = Math.floor(totalXP / 500) + 1;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
-                <BookOpen size={18} className="text-white" />
-              </div>
-              <h1 className="text-xl font-bold text-gray-900">Neuro Track</h1>
-            </div>
-
-            <nav className="hidden md:flex items-center gap-1">
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="px-4 py-2 text-sm font-medium text-gray-900 bg-gray-100 rounded-lg"
-              >
-                <span className="flex items-center gap-2">
-                  <BookOpen size={16} />
-                  Dashboard
-                </span>
-              </button>
-              <button
-                onClick={() => navigate('/chat')}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <span className="flex items-center gap-2">
-                  <MessageSquare size={16} />
-                  AI Chat
-                </span>
-              </button>
-              <button
-                onClick={() => navigate('/courses')}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <span className="flex items-center gap-2">
-                  <BookOpen size={16} />
-                  Courses
-                </span>
-              </button>
-            </nav>
-
-            <div className="flex items-center gap-3">
-              <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors relative">
-                <Bell size={20} className="text-gray-600" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-600 rounded-full"></span>
-              </button>
-              <button
-                onClick={() => navigate('/profile')}
-                className="flex items-center gap-2 hover:bg-gray-100 rounded-lg p-1.5 pr-3 transition-colors"
-              >
-                <img
-                  src={user?.avatar}
-                  alt={user?.name}
-                  className="w-8 h-8 rounded-full"
-                />
-                <div className="text-left">
-                  <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                  <p className="text-xs text-gray-500">Level {currentLevel}</p>
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <Navbar />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Welcome Section */}
-        <div className="bg-white rounded-xl border border-gray-200 p-8 mb-6">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-8 mb-6">
           <div className="flex items-start gap-4">
             <img
               src={user?.avatar}
@@ -134,10 +71,10 @@ export const Dashboard = () => {
               className="w-16 h-16 rounded-full"
             />
             <div className="flex-1">
-              <h2 className="text-2xl font-bold text-gray-900 mb-1">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
                 Welcome back, {user?.name?.split(' ')[0]}
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Ready to continue your learning journey?
               </p>
 

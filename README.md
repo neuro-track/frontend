@@ -13,6 +13,14 @@ A modern, adaptive learning platform with roadmap.sh-style visualization.
 - **RF8**: Real-time progress tracking
 - **RF9**: Authentication (OAuth-ready)
 
+### New Features Added
+- **Notification System**: Real-time notifications for achievements, recommendations, and milestones
+- **Search Functionality**: Quick search for courses, lessons, and tags
+- **Favorites System**: Bookmark and organize favorite courses and lessons
+- **Dark Mode**: Full dark/light theme support with system preference detection
+- **Notes Panel**: Take and manage notes for each lesson
+- **Enhanced Navigation**: Modern navbar with quick access to all features
+
 ### Non-Functional Requirements (RNF)
 - **RNF1**: Multi-user support
 - **RNF2**: Event persistence with retry mechanism
@@ -65,11 +73,21 @@ src/
 ├── components/           # React components
 │   ├── Auth.tsx         # Authentication page
 │   ├── Dashboard.tsx    # Main dashboard
+│   ├── Navbar.tsx       # Enhanced navigation bar
+│   ├── NotificationCenter.tsx  # Notification system
+│   ├── SearchModal.tsx  # Global search
+│   ├── ThemeToggle.tsx  # Dark/light mode toggle
+│   ├── NotesPanel.tsx   # Lesson notes interface
+│   ├── FavoritesScreen.tsx  # Favorites page
 │   ├── RoadmapGraph.tsx # Clean graph visualization
 │   └── UnifiedLearningGraph.tsx  # Unified learning roadmap
 ├── store/               # Zustand stores
 │   ├── useAuthStore.ts  # Authentication state
-│   └── useLearningStore.ts  # Learning progress state
+│   ├── useLearningStore.ts  # Learning progress state
+│   ├── useNotificationStore.ts  # Notifications
+│   ├── useThemeStore.ts # Theme preferences
+│   ├── useNotesStore.ts # User notes
+│   └── useFavoritesStore.ts  # Favorites
 ├── types/               # TypeScript types
 │   └── index.ts         # Core type definitions
 ├── data/                # Mock data

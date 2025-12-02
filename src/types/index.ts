@@ -80,3 +80,33 @@ export interface Recommendation {
   confidence: number;
   basedOn: string[];
 }
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: 'achievement' | 'recommendation' | 'reminder' | 'milestone' | 'social';
+  title: string;
+  message: string;
+  icon?: string;
+  link?: string;
+  read: boolean;
+  createdAt: Date;
+}
+
+export interface Note {
+  id: string;
+  userId: string;
+  nodeId: string;
+  courseId: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Favorite {
+  id: string;
+  userId: string;
+  resourceId: string;
+  resourceType: 'course' | 'node';
+  createdAt: Date;
+}

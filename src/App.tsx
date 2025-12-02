@@ -8,6 +8,7 @@ import { LessonScreen } from './components/LessonScreen';
 import { ProfileScreen } from './components/ProfileScreen';
 import { ChatScreen } from './components/ChatScreen';
 import { CoursesScreen } from './components/CoursesScreen';
+import { FavoritesScreen } from './components/FavoritesScreen';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -46,6 +47,10 @@ function App() {
         <Route
           path="/profile"
           element={isAuthenticated ? <ProfileScreen /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/favorites"
+          element={isAuthenticated ? <FavoritesScreen /> : <Navigate to="/" />}
         />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
