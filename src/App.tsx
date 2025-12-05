@@ -9,6 +9,7 @@ import { ProfileScreen } from './components/ProfileScreen';
 import { ChatScreen } from './components/ChatScreen';
 import { CoursesScreen } from './components/CoursesScreen';
 import { FavoritesScreen } from './components/FavoritesScreen';
+import { ChatFAB } from './components/ChatFAB';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -54,6 +55,9 @@ function App() {
         />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
+
+      {/* Chat FAB - visible on all authenticated pages */}
+      {isAuthenticated && <ChatFAB />}
     </BrowserRouter>
   );
 }

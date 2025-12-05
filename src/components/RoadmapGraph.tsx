@@ -91,7 +91,6 @@ export const RoadmapGraph = ({ nodes, onNodeClick, selectedNodeId }: RoadmapGrap
         return '#3B82F6';
       case 'available':
         return '#1F2937';
-      case 'locked':
         return '#D1D5DB';
       default:
         return '#E5E7EB';
@@ -104,7 +103,6 @@ export const RoadmapGraph = ({ nodes, onNodeClick, selectedNodeId }: RoadmapGrap
         return <Check size={20} className="text-white" />;
       case 'in-progress':
         return <Play size={20} className="text-white" />;
-      case 'locked':
         return <Lock size={20} className="text-white" />;
       default:
         return <Play size={20} className="text-white" />;

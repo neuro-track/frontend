@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useLearningStore } from '../store/useLearningStore';
 import { useFavoritesStore } from '../store/useFavoritesStore';
 import { useAuthStore } from '../store/useAuthStore';
-import { RoadmapGraph } from './RoadmapGraph';
+import { RoadmapGraphFlow } from './RoadmapGraphFlow';
 import { PageContainer } from './PageContainer';
 import { PageHeader } from './PageHeader';
 import { Card } from './Card';
@@ -24,15 +24,29 @@ type ViewMode = 'linear' | 'roadmap';
 export const CourseScreen = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
-  const { courses } = useLearningStore();
+  const { courses, roadmap, loadRoadmap } = useLearningStore();
   const { favorites, addFavorite, removeFavorite } = useFavoritesStore();
   const { user } = useAuthStore();
   const [viewMode, setViewMode] = useState<ViewMode>('linear');
   const [selectedNode, setSelectedNode] = useState<LearningNode | null>(null);
 
-  const course = courses.find(c => c.id === courseId);
+  // Load roadmap if not loaded
+  useEffect(() => {
+    if (!roadmap) {
+      loadRoadmap();
+    }
+  }, [roadmap, loadRoadmap]);
 
-  if (!course) {
+  // Try to find roadmap first, then fall back to courses
+  const isRoadmap = roadmap && courseId === roadmap.id;
+  const course = isRoadmap ? null : courses.find(c => c.id === courseId);
+
+  // If it's a roadmap, use roadmap data
+  const title = isRoadmap ? roadmap!.title : course?.title;
+  const description = isRoadmap ? roadmap!.description : course?.description;
+  const nodes = isRoadmap ? roadmap!.nodes : course?.nodes || [];
+
+  if (!isRoadmap && !course) {
     return (
       <PageContainer>
         <div className="flex items-center justify-center h-[60vh]">
@@ -52,19 +66,19 @@ export const CourseScreen = () => {
     );
   }
 
-  const completedCount = course.nodes.filter(n => n.status === 'completed').length;
-  const totalCount = course.nodes.length;
+  const completedCount = nodes.filter(n => n.status === 'completed').length;
+  const totalCount = nodes.length;
   const progressPercentage = Math.round((completedCount / totalCount) * 100);
-  const totalMinutes = course.nodes.reduce((sum, n) => sum + n.estimatedMinutes, 0);
+  const totalMinutes = nodes.reduce((sum, n) => sum + n.estimatedMinutes, 0);
   const totalHours = Math.floor(totalMinutes / 60);
   const remainingMinutes = totalMinutes % 60;
 
-  const groupedNodes = course.nodes.reduce((acc, node) => {
-    const module = `Módulo ${Math.floor(course.nodes.indexOf(node) / 3) + 1}`;
+  const groupedNodes = nodes.reduce((acc, node) => {
+    const module = `Módulo ${Math.floor(nodes.indexOf(node) / 3) + 1}`;
     if (!acc[module]) acc[module] = [];
     acc[module].push(node);
     return acc;
-  }, {} as Record<string, typeof course.nodes>);
+  }, {} as Record<string, LearningNode[]>);
 
   // Check if course is favorited
   const isFavorited = favorites.some(
@@ -95,8 +109,8 @@ export const CourseScreen = () => {
       <div className="space-y-6">
         {/* Page Header */}
         <PageHeader
-          title={course.title}
-          description={course.description}
+          title={title || 'Roadmap'}
+          description={description || ''}
           backTo={{ label: 'Voltar ao Dashboard', path: '/dashboard' }}
           actions={
             <button
@@ -115,7 +129,7 @@ export const CourseScreen = () => {
             { label: 'Progresso', value: `${progressPercentage}%` },
             { label: 'Completas', value: `${completedCount}/${totalCount}` },
             { label: 'Duração', value: `${totalHours}h ${remainingMinutes}min` },
-            { label: 'Categoria', value: course.category },
+            ...(isRoadmap ? [] : [{ label: 'Categoria', value: course?.category || '' }]),
           ]}
         />
 
@@ -141,7 +155,7 @@ export const CourseScreen = () => {
         <Card>
           <button
             onClick={() => {
-              const nextNode = course.nodes.find(
+              const nextNode = nodes.find(
                 n => n.status === 'available' || n.status === 'in-progress'
               );
               if (nextNode) handleStartLesson(nextNode.id);
@@ -149,36 +163,39 @@ export const CourseScreen = () => {
             className="w-full px-6 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-2"
           >
             <Play size={20} />
-            {completedCount === 0 ? 'Iniciar Curso' : 'Continuar Aprendendo'}
+            {completedCount === 0 ? (isRoadmap ? 'Iniciar Roadmap' : 'Iniciar Curso') : 'Continuar Aprendendo'}
           </button>
         </Card>
 
         {/* View Mode Toggle */}
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Conteúdo do Curso</h2>
-          <div className="flex items-center gap-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-1">
-            <button
-              onClick={() => setViewMode('linear')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                viewMode === 'linear'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              <LayoutList size={16} />
-              Linear
-            </button>
-            <button
-              onClick={() => setViewMode('roadmap')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                viewMode === 'roadmap'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              <Network size={16} />
-              Roadmap
-            </button>
+          <div className="flex items-center gap-3">
+            {/* Linear vs Roadmap Toggle */}
+            <div className="flex items-center gap-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('linear')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === 'linear'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                <LayoutList size={16} />
+                Linear
+              </button>
+              <button
+                onClick={() => setViewMode('roadmap')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === 'roadmap'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                <Network size={16} />
+                Roadmap
+              </button>
+            </div>
           </div>
         </div>
 
@@ -192,7 +209,7 @@ export const CourseScreen = () => {
                 </h3>
                 <div className="space-y-3">
                   {nodes.map((node, nodeIndex) => {
-                    const isLocked = node.status === 'locked';
+                    const isLocked = node.status === 'available' && false;
                     const isCompleted = node.status === 'completed';
                     const isInProgress = node.status === 'in-progress';
 
@@ -305,8 +322,8 @@ export const CourseScreen = () => {
           </div>
         ) : (
           <div className="relative h-[800px]">
-            <RoadmapGraph
-              nodes={course.nodes}
+            <RoadmapGraphFlow
+              nodes={nodes}
               onNodeClick={setSelectedNode}
               selectedNodeId={selectedNode?.id}
             />
@@ -319,7 +336,7 @@ export const CourseScreen = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
-                          {course.title}
+                          {title}
                         </span>
                       </div>
                       <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -364,7 +381,7 @@ export const CourseScreen = () => {
                         <p className="text-xs text-gray-500 dark:text-gray-500 mb-1">Status</p>
                         <p className="font-semibold text-gray-900 dark:text-white capitalize">
                           {selectedNode.status === 'in-progress' ? 'Em Progresso' :
-                           selectedNode.status === 'locked' ? 'Bloqueado' :
+                           selectedNode.status === 'available' && false ? 'Bloqueado' :
                            selectedNode.status === 'completed' ? 'Completo' : 'Disponível'}
                         </p>
                       </Card>
@@ -377,7 +394,7 @@ export const CourseScreen = () => {
                         </h3>
                         <div className="space-y-2">
                           {selectedNode.prerequisites.map(prereqId => {
-                            const prereq = course.nodes.find(n => n.id === prereqId);
+                            const prereq = nodes.find(n => n.id === prereqId);
                             return prereq ? (
                               <div
                                 key={prereqId}
@@ -434,19 +451,19 @@ export const CourseScreen = () => {
                     <div className="pt-4">
                       <button
                         onClick={() =>
-                          !selectedNode.status.includes('locked') &&
+                          !selectedNode.status.includes('never_match_this') &&
                           handleStartLesson(selectedNode.id)
                         }
-                        disabled={selectedNode.status === 'locked'}
+                        disabled={selectedNode.status === 'available' && false}
                         className={`w-full py-3 rounded-lg font-medium transition-all ${
-                          selectedNode.status === 'locked'
+                          selectedNode.status === 'available' && false
                             ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
                             : 'bg-blue-600 text-white hover:bg-blue-700 hover:scale-105'
                         }`}
                       >
                         {selectedNode.status === 'completed'
                           ? 'Revisar Lição'
-                          : selectedNode.status === 'locked'
+                          : selectedNode.status === 'available' && false
                           ? 'Bloqueado'
                           : 'Iniciar Lição'}
                       </button>

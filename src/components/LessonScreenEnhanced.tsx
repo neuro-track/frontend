@@ -8,6 +8,9 @@ import { Navbar } from './Navbar';
 import { VideoList } from './VideoPlayer';
 import { WikipediaContent } from './WikipediaContent';
 import { NotesPanel } from './NotesPanel';
+import { TaskList } from './TaskList';
+import { TaskModal } from './TaskModal';
+import { Task } from '../types';
 import { contentGeneratorService, LessonContent } from '../services/contentGeneratorService';
 import confetti from 'canvas-confetti';
 import {
@@ -21,14 +24,15 @@ import {
   Loader,
   Sparkles,
   Star,
+  Code,
 } from 'lucide-react';
 
-type TabType = 'videos' | 'article' | 'notes';
+type TabType = 'videos' | 'article' | 'exercises' | 'notes';
 
 export const LessonScreenEnhanced = () => {
   const { courseId, nodeId } = useParams();
   const navigate = useNavigate();
-  const { courses, updateNodeStatus, unlockDependentNodes } = useLearningStore();
+  const { courses, roadmap, updateNodeStatus, unlockDependentNodes, completeTask } = useLearningStore();
   const { addNotification } = useNotificationStore();
   const { user } = useAuthStore();
   const { favorites, addFavorite, removeFavorite } = useFavoritesStore();
@@ -37,17 +41,24 @@ export const LessonScreenEnhanced = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
-  const course = courses.find(c => c.id === courseId);
-  const node = course?.nodes.find(n => n.id === nodeId);
-  const currentIndex = course?.nodes.findIndex(n => n.id === nodeId) ?? -1;
-  const previousNode = currentIndex > 0 ? course?.nodes[currentIndex - 1] : null;
-  const nextNode =
-    currentIndex >= 0 && course ? course.nodes[currentIndex + 1] : null;
+  // Check roadmap first, then fall back to courses
+  const isRoadmap = roadmap && courseId === roadmap.id;
+  const course = isRoadmap ? null : courses.find(c => c.id === courseId);
+  const node = isRoadmap
+    ? roadmap!.nodes.find(n => n.id === nodeId)
+    : course?.nodes.find(n => n.id === nodeId);
 
-  // Calculate course progress
-  const completedNodes = course?.nodes.filter(n => n.status === 'completed').length || 0;
-  const totalNodes = course?.nodes.length || 0;
+  // Navigation: use roadmap nodes or course nodes
+  const allNodes = isRoadmap ? roadmap!.nodes : (course?.nodes || []);
+  const currentIndex = allNodes.findIndex(n => n.id === nodeId) ?? -1;
+  const previousNode = currentIndex > 0 ? allNodes[currentIndex - 1] : null;
+  const nextNode = currentIndex >= 0 ? allNodes[currentIndex + 1] : null;
+
+  // Calculate course/roadmap progress
+  const completedNodes = allNodes.filter(n => n.status === 'completed').length || 0;
+  const totalNodes = allNodes.length || 0;
   const courseProgress = totalNodes > 0 ? Math.round((completedNodes / totalNodes) * 100) : 0;
 
   // Check if lesson is favorited
@@ -111,7 +122,7 @@ export const LessonScreenEnhanced = () => {
     }
   };
 
-  if (!course || !node) {
+  if (!node) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
         <Navbar />
@@ -152,7 +163,7 @@ export const LessonScreenEnhanced = () => {
       addNotification({
         userId: user.id,
         type: 'achievement',
-        title: 'Lição Completa! 🎉',
+        title: 'Lição Completa!',
         message: `Você completou "${node?.title}"`,
         icon: '✅',
       });
@@ -180,12 +191,12 @@ export const LessonScreenEnhanced = () => {
       }, 300);
 
       unlockedNodeIds.forEach(unlockedNodeId => {
-        const unlockedNode = course?.nodes.find(n => n.id === unlockedNodeId);
+        const unlockedNode = allNodes.find(n => n.id === unlockedNodeId);
         if (unlockedNode) {
           addNotification({
             userId: user.id,
             type: 'milestone',
-            title: 'Nova Lição Desbloqueada! 🔓',
+            title: 'Nova Lição Desbloqueada!',
             message: `"${unlockedNode.title}" agora está disponível`,
             icon: '🔓',
             link: `/lesson/${courseId}/${unlockedNodeId}`,
@@ -197,6 +208,33 @@ export const LessonScreenEnhanced = () => {
 
   const handleNavigate = (targetNodeId: string) => {
     navigate(`/lesson/${courseId}/${targetNodeId}`);
+  };
+
+  const handleTaskComplete = (task: Task, submission?: string, score?: number) => {
+    // Call the store method to complete the task
+    if (nodeId) {
+      completeTask(nodeId, task.id, submission, score);
+    }
+
+    // Close modal
+    setSelectedTask(null);
+
+    // Show celebration
+    if (user) {
+      confetti({
+        particleCount: 50,
+        spread: 60,
+        origin: { y: 0.7 }
+      });
+
+      addNotification({
+        userId: user.id,
+        type: 'achievement',
+        title: 'Tarefa Completa!',
+        message: `Você completou "${task.title}"${score !== undefined ? ` com ${score}% de acerto` : ''}`,
+        icon: '✅',
+      });
+    }
   };
 
   return (
@@ -323,7 +361,7 @@ export const LessonScreenEnhanced = () => {
                   <Sparkles className="w-6 h-6 text-green-600 dark:text-green-400" />
                   <div className="flex-1">
                     <p className="font-semibold text-green-800 dark:text-green-200">
-                      Parabéns! 🎉
+                      Parabéns!
                     </p>
                     <p className="text-sm text-green-700 dark:text-green-300">
                       Você completou esta lição com sucesso!
@@ -370,6 +408,17 @@ export const LessonScreenEnhanced = () => {
                     Artigo
                   </button>
                   <button
+                    onClick={() => setActiveTab('exercises')}
+                    className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+                      activeTab === 'exercises'
+                        ? 'border-purple-600 text-purple-600 dark:border-purple-400 dark:text-purple-400'
+                        : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <Code size={16} />
+                    Exercícios ({node?.tasks?.length || 0})
+                  </button>
+                  <button
                     onClick={() => setActiveTab('notes')}
                     className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                       activeTab === 'notes'
@@ -407,6 +456,13 @@ export const LessonScreenEnhanced = () => {
                       />
                     )}
 
+                    {activeTab === 'exercises' && (
+                      <TaskList
+                        tasks={node?.tasks || []}
+                        onTaskClick={setSelectedTask}
+                      />
+                    )}
+
                     {activeTab === 'notes' && (
                       <NotesPanel nodeId={nodeId!} courseId={courseId!} />
                     )}
@@ -414,6 +470,15 @@ export const LessonScreenEnhanced = () => {
                 )}
               </div>
             </div>
+
+            {/* Task Modal */}
+            {selectedTask && (
+              <TaskModal
+                task={selectedTask}
+                onClose={() => setSelectedTask(null)}
+                onComplete={handleTaskComplete}
+              />
+            )}
 
             {/* Navigation */}
             <div className="flex items-center justify-between">
@@ -447,12 +512,14 @@ export const LessonScreenEnhanced = () => {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-6 sticky top-24">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Conteúdo do Curso</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
+                {isRoadmap ? 'Conteúdo do Roadmap' : 'Conteúdo do Curso'}
+              </h3>
               <div className="space-y-2 max-h-[600px] overflow-y-auto">
-                {course.nodes.map((n, index) => {
+                {allNodes.map((n, index) => {
                   const isActive = n.id === nodeId;
                   const isCompleted = n.status === 'completed';
-                  const isLocked = n.status === 'locked';
+                  const isLocked = n.status === 'available' && false;
 
                   return (
                     <button

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useLearningStore } from '../store/useLearningStore';
+import { translateNodeType, translateDifficulty } from '../utils/translations';
 import {
   ArrowLeft,
   CheckCircle,
@@ -77,7 +78,7 @@ export const LessonScreen = () => {
           <div className="lg:col-span-2 space-y-6">
             {/* Video Player */}
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-              <div className="aspect-video bg-gray-900 flex items-center justify-center relative">
+              <div className="aspect-video bg-  -900 flex items-center justify-center relative">
                 <div className="text-white text-center">
                   <div className="w-20 h-20 border-4 border-white rounded-full flex items-center justify-center mb-4 mx-auto cursor-pointer hover:bg-white/10 transition-colors">
                     <div className="w-0 h-0 border-t-8 border-t-transparent border-l-12 border-l-white border-b-8 border-b-transparent ml-1"></div>
@@ -111,10 +112,10 @@ export const LessonScreen = () => {
                   <span>{node.estimatedMinutes} minutes</span>
                 </div>
                 <div className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-                  {node.type}
+                  {translateNodeType(node.type)}
                 </div>
                 <div className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-                  {node.difficulty}
+                  {translateDifficulty(node.difficulty)}
                 </div>
               </div>
 
@@ -273,7 +274,7 @@ export const LessonScreen = () => {
                 {course.nodes.map((n, index) => {
                   const isActive = n.id === nodeId;
                   const isCompleted = n.status === 'completed';
-                  const isLocked = n.status === 'locked';
+                  const isLocked = n.status === 'available' && false;
 
                   return (
                     <button

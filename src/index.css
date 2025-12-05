@@ -31,4 +31,35 @@ body {
   .card {
     @apply bg-white rounded-xl shadow-md p-6 border border-gray-100;
   }
+
+  /* Heat map pulse animation for high-priority recommendations */
+  @keyframes pulse-glow {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.02);
+      opacity: 0.9;
+    }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  /* Animated path edges */
+  .personalized-path-edge path {
+    stroke-dasharray: 10 5;
+    animation: path-flow 2s linear infinite;
+  }
+
+  @keyframes path-flow {
+    0% {
+      stroke-dashoffset: 0;
+    }
+    100% {
+      stroke-dashoffset: 20;
+    }
+  }
 }
