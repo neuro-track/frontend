@@ -11,6 +11,7 @@ variable "max_instances" { default = 3 }
 variable "omdbapi_uri" {default = "http://www.omdbapi.com/"}
 variable "omdbapi_key" {default = "af5bc4a5"}
 
+
 terraform {
     required_providers {
       google = {
@@ -21,9 +22,42 @@ terraform {
 }
 
 provider "google" {
-    credentials = var.credentials_file
-    project = var.project_id
-    region = var.region
+    credentials = file(var.credentials_file) # <--- Correção aqui
+    project     = var.project_id
+    region      = var.region
+}
+
+resource "google_project_service" "secretmanager" {
+  project = var.project_id
+  service = "secretmanager.googleapis.com"
+}
+
+resource "google_secret_manager_secret" "youtube_key" {
+  secret_id = "vite-youtube-api-key"
+  replication {
+    auto {}
+  }
+  depends_on = [google_project_service.secretmanager]
+}
+
+resource "google_secret_manager_secret" "openai_key" {
+  secret_id = "vite-openai-api-key"
+  replication {
+    auto {}
+  }
+  depends_on = [google_project_service.secretmanager]
+}
+
+resource "google_secret_manager_secret_iam_member" "build_access_youtube" {
+  secret_id = google_secret_manager_secret.youtube_key.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:arthur@isn2025-2.iam.gserviceaccount.com"
+}
+
+resource "google_secret_manager_secret_iam_member" "build_access_openai" {
+  secret_id = google_secret_manager_secret.openai_key.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:arthur@isn2025-2.iam.gserviceaccount.com"
 }
 
 resource "google_firestore_database" "database" {
