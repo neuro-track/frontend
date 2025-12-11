@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageSquare, Send, Loader, Sparkles } from 'lucide-react';
+import { MessageSquare, Send, Loader, Sparkles, Coffee, ChefHat, Clock, Utensils } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUserProfileStore } from '../store/useUserProfileStore';
 import { useLearningStore } from '../store/useLearningStore';
@@ -24,6 +24,7 @@ export const ChatScreenContent = ({ isModal = false, onClose }: ChatScreenConten
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [interviewStep, setInterviewStep] = useState(0);
   const [isInterviewMode, setIsInterviewMode] = useState(false);
+  const [waitingRecipe, setWaitingRecipe] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -186,9 +187,42 @@ export const ChatScreenContent = ({ isModal = false, onClose }: ChatScreenConten
     }
   };
 
-  const handleGenerateRoadmap = async () => {
+  const renderRecipeContent = (text: string) => {
+    return text.split('\n').map((line, i) => {
+      if (!line.trim()) return <div key={i} className="h-2" />;
+
+      const isListItem = line.trim().startsWith('•') || /^\d+\./.test(line.trim());
+      
+      const parts = line.split('**');
+
+      return (
+        <div 
+          key={i} 
+          className={`text-slate-700 dark:text-slate-300 text-sm leading-relaxed ${isListItem ? 'pl-4 mb-1' : 'mb-2'}`}
+        >
+          {parts.map((part, index) => {
+            if (index % 2 === 1) {
+              return (
+                <strong key={index} className="font-bold text-orange-800 dark:text-orange-200">
+                  {part}
+                </strong>
+              );
+            }
+            return <span key={index}>{part}</span>;
+          })}
+        </div>
+      );
+    });
+  };
+
+const handleGenerateRoadmap = async () => {
     setIsGenerating(true);
     setGenerationError(null);
+    setWaitingRecipe(null);
+
+    aiService.generateQuickRecipe().then(recipe => {
+      setWaitingRecipe(recipe);
+    });
 
     const result = await generateRoadmapFromChat();
 
@@ -196,9 +230,8 @@ export const ChatScreenContent = ({ isModal = false, onClose }: ChatScreenConten
 
     if (result.success) {
       if (isModal && onClose) {
-        onClose(); // Fecha modal se estiver em modal
+        onClose();
       }
-      // Redireciona para /learn para ver o roadmap gerado
       navigate('/learn');
     } else {
       setGenerationError(result.error || 'Erro desconhecido');
@@ -321,18 +354,86 @@ export const ChatScreenContent = ({ isModal = false, onClose }: ChatScreenConten
         </div>
       )}
 
-      {/* Generation in Progress */}
+      {/* Generation in Progress Enhanced */}
       {isGenerating && (
-        <div className="mb-6 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border-2 border-blue-300 dark:border-blue-700">
-          <div className="flex flex-col items-center gap-4">
-            <Loader size={40} className="animate-spin text-blue-600" />
-            <div className="text-center">
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                Gerando seu roadmap personalizado...
-              </h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Analisando seus objetivos e criando um caminho de aprendizado completo com lições e exercícios. Isso pode levar alguns instantes.
-              </p>
+        <div className="mb-8 mx-auto w-full max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-700">
+          
+          {/* Card Principal */}
+          <div className="relative bg-white dark:bg-slate-900 rounded-2xl p-1 shadow-2xl border border-blue-100 dark:border-slate-700 overflow-hidden">
+            
+            {/* Background Decorativo Animado */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 animate-gradient-x"></div>
+
+            <div className="p-6 flex flex-col items-center">
+              
+              {/* 1. Status do Roadmap */}
+              <div className="flex flex-col items-center text-center mb-8 w-full">
+                <div className="relative mb-4">
+                  <div className="absolute inset-0 bg-blue-400 blur-xl opacity-20 animate-pulse rounded-full"></div>
+                  <Loader size={36} className="relative animate-spin text-blue-600 dark:text-blue-400" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">
+                  Construindo sua Jornada
+                </h3>
+                <p className="text-slate-500 dark:text-slate-400 text-sm">
+                  A IA está estruturando seus módulos de aprendizado...
+                </p>
+              </div>
+
+              {/* Divisor "Enquanto isso" */}
+              <div className="w-full flex items-center gap-4 mb-6 opacity-80">
+                <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700"></div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Enquanto você espera</span>
+                <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700"></div>
+              </div>
+
+              {/* 2. Área da Receita (Estilo Card/Ticket) */}
+              <div className="w-full bg-orange-50/50 dark:bg-slate-800/50 rounded-xl border border-orange-100 dark:border-slate-700 overflow-hidden transition-all duration-500 relative group hover:shadow-md">
+                
+                {!waitingRecipe ? (
+                  // Loading da Receita (Chef)
+                  <div className="p-8 flex flex-col items-center justify-center text-center space-y-3 min-h-[160px]">
+                    <ChefHat className="text-orange-400 animate-bounce" size={28} />
+                    <p className="text-orange-800/70 dark:text-orange-200/70 font-medium text-sm animate-pulse">
+                      O Chef IA está selecionando uma receita express...
+                    </p>
+                  </div>
+                ) : (
+                  // Receita Carregada
+                  <div className="flex flex-col animate-in zoom-in-95 duration-300">
+                    {/* Header do Ticket */}
+                    <div className="bg-orange-100/80 dark:bg-slate-800 px-5 py-3 flex items-center justify-between border-b border-orange-200/50 dark:border-slate-700">
+                      <div className="flex items-center gap-2 text-orange-800 dark:text-orange-400">
+                        <div className="p-1.5 bg-white dark:bg-slate-700 rounded-lg shadow-sm">
+                          <Coffee size={16} className="text-orange-600 dark:text-orange-400" />
+                        </div>
+                        <span className="font-bold text-sm tracking-tight">Pausa Criativa</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[11px] font-semibold text-orange-700 dark:text-orange-300 bg-white/60 dark:bg-slate-700/50 px-2.5 py-1 rounded-full border border-orange-200 dark:border-slate-600">
+                        <Clock size={12} />
+                        <span>5 min</span>
+                      </div>
+                    </div>
+
+                    {/* Conteúdo do Ticket */}
+                    <div className="p-6">
+                      <div className="prose prose-sm prose-orange dark:prose-invert max-w-none">
+                        {/* Renderiza o texto respeitando quebras de linha mas com fonte mais agradável */}
+                        <div className="font-sans">
+                         {renderRecipeContent(waitingRecipe)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Footer Decorativo */}
+                    <div className="bg-gradient-to-r from-orange-50 to-white dark:from-slate-800 dark:to-slate-800/50 px-5 py-2 border-t border-orange-100 dark:border-slate-700 flex justify-between items-center">
+                      <span className="text-[10px] text-orange-400 dark:text-slate-500 font-medium">Powered by AI Chef</span>
+                      <Utensils size={12} className="text-orange-300 dark:text-slate-600" />
+                    </div>
+                  </div>
+                )}
+              </div>
+
             </div>
           </div>
         </div>

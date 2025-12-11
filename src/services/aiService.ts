@@ -188,6 +188,49 @@ Retorne APENAS JSON válido no formato:
   }
 
   /**
+   * Generate a quick 5-minute recipe while waiting
+   */
+  async generateQuickRecipe(): Promise<string> {
+    const systemPrompt = `Gere uma receita extremamente rápida e fácil (preparo em 5 minutos ou menos), como um cappuccino caseiro, um snack rápido ou uma bebida refrescante.
+    A resposta deve ser curta, direta e amigável.
+    Formato:
+    **[Nome da Receita]**
+    • Ingrediente 1
+    • Ingrediente 2
+    ...
+    1. Passo 1
+    2. Passo 2
+    ...
+    Bom apetite!`;
+
+    try {
+      const response = await fetch(this.baseURL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.apiKey}`,
+        },
+        body: JSON.stringify({
+          model: this.model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: "Gere uma receita rápida para eu fazer agora." },
+          ],
+          temperature: 0.8,
+        }),
+      });
+
+      if (!response.ok) return "Que tal beber um copo de água? Hidratar-se ajuda no foco! 💧";
+
+      const data = await response.json();
+      return data.choices[0].message.content;
+    } catch (error) {
+      console.error('Error generating recipe:', error);
+      return "Que tal fazer um alongamento rápido? Ajuda a relaxar antes de estudar! 🙆‍♂️";
+    }
+  }
+
+  /**
    * Generate roadmap directly from conversation (OPTIMIZED - Single API call)
    */
   async generateRoadmapFromConversation(messages: ChatMessage[]): Promise<Roadmap> {
