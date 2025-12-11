@@ -4,7 +4,7 @@ import { BookOpen, Mail } from 'lucide-react';
 
 export const Auth = () => {
   const [email, setEmail] = useState('');
-  const { login, isLoading } = useAuthStore();
+  const { login, isLoading, fetchUserFromApi } = useAuthStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,9 +15,53 @@ export const Auth = () => {
     }
   };
 
-  const handleSocialLogin = (provider: string) => {
-    // Mock social login
-    login(`user@${provider}.com`, 'demo');
+  const handleSocialLogin = async (provider: string) => {
+    // Only Google is supported by backend OAuth; provider param kept for compatibility.
+    if (provider !== 'google') {
+      // Fallback to mock for non-google
+      login(`user@${provider}.com`, 'demo');
+      return;
+    }
+
+  const apiBase = ((import.meta as any).env?.VITE_API_URL as string) || 'http://localhost:3000';
+    const redirectTo = window.location.origin; // after successful auth backend will redirect here
+    const oauthUrl = `${apiBase}/api/v1/auth/google?redirectTo=${encodeURIComponent(redirectTo)}`;
+
+    const popup = window.open(oauthUrl, 'oauth', 'width=600,height=700');
+    if (!popup) {
+      console.error('Popup blocked');
+      return;
+    }
+
+    try {
+      const maxAttempts = 120; // ~2 minutes
+      for (let i = 0; i < maxAttempts; i++) {
+        // wait 1s
+        await new Promise((r) => setTimeout(r, 1000));
+
+        // If popup closed by user, stop polling
+        if (popup.closed) break;
+
+        try {
+          const res = await fetch(`${apiBase}/api/v1/status`, { credentials: 'include' });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.authenticated) {
+              // sync user info and close popup
+              await fetchUserFromApi();
+              try { popup.close(); } catch (e) {}
+              return;
+            }
+          }
+        } catch (err) {
+          // ignore transient fetch errors
+        }
+      }
+    } finally {
+      if (!popup.closed) {
+        try { popup.close(); } catch (e) {}
+      }
+    }
   };
 
   return (
