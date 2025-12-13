@@ -22,8 +22,8 @@ export const Card = ({
   padding = 'md',
   onClick
 }: CardProps) => {
-  const baseClasses = 'bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800';
-  const hoverClasses = hover ? 'hover:shadow-lg dark:hover:shadow-gray-900/50 transition-all cursor-pointer' : '';
+  const baseClasses = 'bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800';
+  const hoverClasses = hover ? 'hover:border-gray-300 dark:hover:border-gray-700 transition-colors cursor-pointer' : '';
   const clickableClasses = onClick ? 'cursor-pointer' : '';
 
   return (

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { ChatMessage, ExtractedProfile } from '../services/aiService';
+import { supabase, isSupabaseEnabled } from '../lib/supabase';
 
 /**
  * Learning Goals
@@ -126,6 +127,10 @@ interface UserProfileState {
   clearChatHistory: () => void;
   updateProfileFromAI: (profile: ExtractedProfile) => void;
   markRoadmapGenerated: () => void;
+
+  // Supabase sync actions
+  syncToSupabase: () => Promise<void>;
+  loadFromSupabase: (userId: string) => Promise<void>;
 }
 
 /**
@@ -361,6 +366,99 @@ export const useUserProfileStore = create<UserProfileState>()(
             lastUpdated: new Date().toISOString(),
           },
         });
+      },
+
+      /**
+       * Sync profile to Supabase
+       */
+      syncToSupabase: async () => {
+        if (!isSupabaseEnabled || !supabase) {
+          console.log('Supabase not enabled, skipping sync');
+          return;
+        }
+
+        const currentProfile = get().profile;
+
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+
+          if (!user) {
+            console.error('No authenticated user found');
+            return;
+          }
+
+          // Update profile in Supabase
+          const { error } = await supabase
+            .from('profiles')
+            .update({
+              learning_goal: currentProfile.learningGoal,
+              target_role: currentProfile.targetRole,
+              available_hours_per_week: currentProfile.availableHoursPerWeek,
+              preferred_pace: currentProfile.preferredPace,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', user.id);
+
+          if (error) {
+            console.error('Failed to sync profile to Supabase:', error);
+          } else {
+            console.log('Profile synced to Supabase successfully');
+          }
+        } catch (error) {
+          console.error('Error syncing to Supabase:', error);
+        }
+      },
+
+      /**
+       * Load profile from Supabase
+       */
+      loadFromSupabase: async (_userId: string) => {
+        if (!isSupabaseEnabled || !supabase) {
+          console.log('Supabase not enabled, using local profile');
+          return;
+        }
+
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+
+          if (!user) {
+            console.error('No authenticated user found');
+            return;
+          }
+
+          // Fetch profile from Supabase
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+          if (error) {
+            console.error('Failed to load profile from Supabase:', error);
+            return;
+          }
+
+          if (data) {
+            const currentProfile = get().profile;
+
+            // Merge Supabase data with local profile
+            set({
+              profile: {
+                ...currentProfile,
+                userId: data.id,
+                learningGoal: (data.learning_goal as LearningGoal) || null,
+                targetRole: data.target_role || '',
+                availableHoursPerWeek: data.available_hours_per_week || 10,
+                preferredPace: (data.preferred_pace as LearningPace) || null,
+                lastUpdated: data.updated_at || new Date().toISOString(),
+              },
+            });
+
+            console.log('Profile loaded from Supabase successfully');
+          }
+        } catch (error) {
+          console.error('Error loading from Supabase:', error);
+        }
       },
     }),
     {

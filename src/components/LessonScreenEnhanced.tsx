@@ -12,7 +12,6 @@ import { TaskList } from './TaskList';
 import { TaskModal } from './TaskModal';
 import { Task } from '../types';
 import { contentGeneratorService, LessonContent } from '../services/contentGeneratorService';
-import confetti from 'canvas-confetti';
 import {
   ArrowLeft,
   CheckCircle,
@@ -143,7 +142,7 @@ export const LessonScreenEnhanced = () => {
     );
   }
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     // Mark current node as completed
     updateNodeStatus(courseId!, nodeId!, 'completed', 100);
 
@@ -151,7 +150,8 @@ export const LessonScreenEnhanced = () => {
     setShowSuccessMessage(true);
     setTimeout(() => setShowSuccessMessage(false), 3000);
 
-    // Celebration confetti animation
+    // Celebration confetti animation (lazy loaded)
+    const confetti = (await import('canvas-confetti')).default;
     confetti({
       particleCount: 100,
       spread: 70,
@@ -174,7 +174,7 @@ export const LessonScreenEnhanced = () => {
 
     // Send notifications for each unlocked node with extra confetti
     if (user && unlockedNodeIds.length > 0) {
-      // Extra confetti for unlocking new lessons
+      // Extra confetti for unlocking new lessons (uses confetti from above)
       setTimeout(() => {
         confetti({
           particleCount: 50,
@@ -210,7 +210,7 @@ export const LessonScreenEnhanced = () => {
     navigate(`/lesson/${courseId}/${targetNodeId}`);
   };
 
-  const handleTaskComplete = (task: Task, submission?: string, score?: number) => {
+  const handleTaskComplete = async (task: Task, submission?: string, score?: number) => {
     // Call the store method to complete the task
     if (nodeId) {
       completeTask(nodeId, task.id, submission, score);
@@ -219,8 +219,9 @@ export const LessonScreenEnhanced = () => {
     // Close modal
     setSelectedTask(null);
 
-    // Show celebration
+    // Show celebration (lazy loaded)
     if (user) {
+      const confetti = (await import('canvas-confetti')).default;
       confetti({
         particleCount: 50,
         spread: 60,

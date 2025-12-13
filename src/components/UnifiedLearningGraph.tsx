@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLearningStore } from '../store/useLearningStore';
 import { RoadmapGraphFlow } from './RoadmapGraphFlow';
+import { FreeGraphView } from './FreeGraphView';
 import { LearningNode } from '../types';
-import { X, Map as MapIcon } from 'lucide-react';
+import { X, Map as MapIcon, Network, List } from 'lucide-react';
 import { PageContainer } from './PageContainer';
 import { PageHeader } from './PageHeader';
 import { Card } from './Card';
@@ -12,6 +13,7 @@ export const UnifiedLearningGraph = () => {
   const navigate = useNavigate();
   const { courses, roadmap, getUnifiedGraph, loadRoadmap } = useLearningStore();
   const [selectedNode, setSelectedNode] = useState<LearningNode | null>(null);
+  const [viewMode, setViewMode] = useState<'linear' | 'free'>('linear');
 
   // Load roadmap on mount
   useEffect(() => {
@@ -171,6 +173,44 @@ export const UnifiedLearningGraph = () => {
             ]}
           />
 
+          {/* View Mode Toggle */}
+          <Card>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Visualização
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {viewMode === 'linear' ? 'Layout linear tradicional' : 'Grafo interativo com física'}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setViewMode('linear')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    viewMode === 'linear'
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                      : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <List className="w-4 h-4" />
+                  Linear
+                </button>
+                <button
+                  onClick={() => setViewMode('free')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    viewMode === 'free'
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                      : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <Network className="w-4 h-4" />
+                  Grafo Livre
+                </button>
+              </div>
+            </div>
+          </Card>
+
           {/* Course/Roadmap filters - Only show if no generated roadmap */}
           {!roadmap && courses.length > 0 && (
             <Card>
@@ -195,20 +235,28 @@ export const UnifiedLearningGraph = () => {
             </Card>
           )}
 
-          {/* Graph */}
-          <Card padding="none" className="h-[600px] relative overflow-hidden">
-            <RoadmapGraphFlow
-              nodes={positionedNodes}
+          {/* Graph - Conditional rendering based on viewMode */}
+          {viewMode === 'linear' ? (
+            <Card padding="none" className="h-[600px] relative overflow-hidden">
+              <RoadmapGraphFlow
+                nodes={positionedNodes}
+                onNodeClick={setSelectedNode}
+                selectedNodeId={selectedNode?.id}
+              />
+            </Card>
+          ) : (
+            <FreeGraphView
+              nodes={allNodes}
+              categories={roadmap?.categories}
               onNodeClick={setSelectedNode}
-              selectedNodeId={selectedNode?.id}
             />
-          </Card>
+          )}
         </div>
       </PageContainer>
 
       {/* Node details panel */}
       {selectedNode && (
-        <div className="absolute right-0 top-0 bottom-0 w-96 bg-white dark:bg-gray-900 shadow-2xl border-l border-gray-200 dark:border-gray-800 overflow-y-auto">
+        <div className="absolute right-0 top-0 bottom-0 w-96 bg-white dark:bg-gray-900 border-l-2 border-gray-200 dark:border-gray-800 overflow-y-auto">
           <div className="p-6">
             <div className="flex items-start justify-between mb-6">
               <div className="flex-1">

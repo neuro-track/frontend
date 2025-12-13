@@ -9,7 +9,7 @@ interface CategoryCardProps {
 export const CategoryCard = ({ category, progress, onClick }: CategoryCardProps) => {
   return (
     <div
-      className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] hover:border-blue-500 dark:hover:border-blue-500"
+      className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 cursor-pointer transition-colors hover:border-blue-500 dark:hover:border-blue-500"
       onClick={onClick}
       style={{ borderLeft: `4px solid ${category.color}` }}
     >

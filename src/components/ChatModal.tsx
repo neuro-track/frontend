@@ -53,9 +53,9 @@ export const ChatModal = ({ isOpen, onClose }: ChatModalProps) => {
       />
 
       {/* Modal Drawer (slide from right) */}
-      <div className="fixed right-0 top-0 bottom-0 w-full md:w-[600px] bg-white dark:bg-gray-900 shadow-2xl z-50 transform transition-transform duration-300 overflow-hidden">
+      <div className="fixed right-0 top-0 bottom-0 w-full md:w-[600px] bg-white dark:bg-gray-900 border-l-2 border-gray-200 dark:border-gray-800 z-50 transform transition-transform duration-300 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-blue-600 to-purple-600">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800 bg-blue-600">
           <div className="flex items-center gap-3">
             <MessageSquare size={24} className="text-white" />
             <div>

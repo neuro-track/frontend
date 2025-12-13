@@ -1,16 +1,19 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Home, BookOpen, MessageCircle, User, LogOut, Search, Heart } from 'lucide-react';
+import { Home, BookOpen, MessageCircle, StickyNote, User, LogOut, Search, Heart } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { NotificationCenter } from './NotificationCenter';
 import { ThemeToggle } from './ThemeToggle';
 import { SearchModal } from './SearchModal';
 import { useFavoritesStore } from '../store/useFavoritesStore';
+import { useNotesStore } from '../store/useNotesStore';
 
 export function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { user, logout } = useAuthStore();
   const { favorites } = useFavoritesStore();
+  const { getAllNotes } = useNotesStore();
+  const notes = useMemo(() => getAllNotes(), [getAllNotes]);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -58,6 +61,18 @@ export function Navbar() {
                 >
                   <MessageCircle className="w-5 h-5" />
                   <span>Chat</span>
+                </Link>
+                <Link
+                  to="/notes"
+                  className="relative flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+                >
+                  <StickyNote className="w-5 h-5" />
+                  <span>Notas</span>
+                  {notes.length > 0 && (
+                    <span className="ml-1 px-1.5 py-0.5 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs rounded-full">
+                      {notes.length}
+                    </span>
+                  )}
                 </Link>
               </div>
             </div>

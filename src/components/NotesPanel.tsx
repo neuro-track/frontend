@@ -12,7 +12,9 @@ interface NotesPanelProps {
 export function NotesPanel({ nodeId, courseId }: NotesPanelProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [newNoteTitle, setNewNoteTitle] = useState('');
   const [newNoteContent, setNewNoteContent] = useState('');
+  const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
 
   const { addNote, updateNote, deleteNote, getNotesByNode } = useNotesStore();
@@ -24,24 +26,33 @@ export function NotesPanel({ nodeId, courseId }: NotesPanelProps) {
 
     addNote({
       userId: user.id,
-      nodeId,
-      courseId,
+      title: newNoteTitle.trim() || 'Nota sem título',
       content: newNoteContent,
+      tags: [],
+      linkedNodeId: nodeId,
+      linkedCourseId: courseId,
+      isPinned: false,
     });
 
+    setNewNoteTitle('');
     setNewNoteContent('');
     setIsAdding(false);
   };
 
   const handleEditNote = (noteId: string) => {
-    updateNote(noteId, editContent);
+    updateNote(noteId, {
+      title: editTitle,
+      content: editContent
+    });
     setEditingId(null);
+    setEditTitle('');
     setEditContent('');
   };
 
-  const startEdit = (noteId: string, content: string) => {
-    setEditingId(noteId);
-    setEditContent(content);
+  const startEdit = (note: { id: string; title: string; content: string }) => {
+    setEditingId(note.id);
+    setEditTitle(note.title);
+    setEditContent(note.content);
   };
 
   return (
@@ -65,6 +76,13 @@ export function NotesPanel({ nodeId, courseId }: NotesPanelProps) {
 
       {isAdding && (
         <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <input
+            type="text"
+            value={newNoteTitle}
+            onChange={(e) => setNewNoteTitle(e.target.value)}
+            placeholder="Título da nota (opcional)"
+            className="w-full p-3 mb-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white"
+          />
           <textarea
             value={newNoteContent}
             onChange={(e) => setNewNoteContent(e.target.value)}
@@ -83,6 +101,7 @@ export function NotesPanel({ nodeId, courseId }: NotesPanelProps) {
             <button
               onClick={() => {
                 setIsAdding(false);
+                setNewNoteTitle('');
                 setNewNoteContent('');
               }}
               className="flex items-center gap-2 px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors text-sm"
@@ -109,6 +128,13 @@ export function NotesPanel({ nodeId, courseId }: NotesPanelProps) {
             >
               {editingId === note.id ? (
                 <div>
+                  <input
+                    type="text"
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    placeholder="Título da nota"
+                    className="w-full p-3 mb-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white"
+                  />
                   <textarea
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
@@ -126,6 +152,7 @@ export function NotesPanel({ nodeId, courseId }: NotesPanelProps) {
                     <button
                       onClick={() => {
                         setEditingId(null);
+                        setEditTitle('');
                         setEditContent('');
                       }}
                       className="flex items-center gap-2 px-3 py-1.5 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors text-sm"
@@ -137,6 +164,11 @@ export function NotesPanel({ nodeId, courseId }: NotesPanelProps) {
                 </div>
               ) : (
                 <>
+                  {note.title && (
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+                      {note.title}
+                    </h4>
+                  )}
                   <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
                     {note.content}
                   </p>
@@ -146,7 +178,7 @@ export function NotesPanel({ nodeId, courseId }: NotesPanelProps) {
                     </span>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => startEdit(note.id, note.content)}
+                        onClick={() => startEdit(note)}
                         className="p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900 rounded transition-colors"
                       >
                         <Edit2 className="w-4 h-4" />

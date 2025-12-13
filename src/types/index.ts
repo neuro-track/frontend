@@ -140,9 +140,15 @@ export interface Notification {
 export interface Note {
   id: string;
   userId: string;
-  nodeId: string;
-  courseId: string;
+  title: string;                    // Required for global notes
   content: string;
+  tags: string[];                    // Tag-based organization
+
+  // Optional context (if created from lesson)
+  linkedNodeId?: string;             // Optional link to lesson
+  linkedCourseId?: string;           // Optional link to course
+
+  isPinned: boolean;                 // Pin important notes
   createdAt: Date;
   updatedAt: Date;
 }

@@ -296,3 +296,59 @@ export const calculateGraphBounds = (
     height: maxY - minY,
   };
 };
+
+/**
+ * Calculate intelligent layout for Free Graph View
+ *
+ * Uses Dagre algorithm to position nodes based on prerequisite relationships.
+ * Nodes are arranged hierarchically with prerequisites above their dependents.
+ *
+ * @param nodes - Array of LearningNodes to layout
+ * @returns LearningNodes with calculated positions
+ */
+export const calculateFreeGraphLayout = (nodes: LearningNode[]): LearningNode[] => {
+  if (nodes.length === 0) return nodes;
+
+  const g = new dagre.graphlib.Graph();
+  g.setGraph({
+    rankdir: 'TB',      // Top to bottom (prerequisites above)
+    nodesep: 150,       // Horizontal spacing between nodes
+    ranksep: 200,       // Vertical spacing between ranks
+    marginx: 50,        // Graph margin
+    marginy: 50,
+  });
+  g.setDefaultEdgeLabel(() => ({}));
+
+  // Add nodes to graph
+  nodes.forEach(node => {
+    g.setNode(node.id, {
+      width: 120,  // Match FreeGraphView node width
+      height: 90   // Match FreeGraphView node height
+    });
+  });
+
+  // Add edges (prerequisites)
+  nodes.forEach(node => {
+    node.prerequisites?.forEach(prereqId => {
+      // Only add edge if prerequisite exists in the node list
+      if (nodes.find(n => n.id === prereqId)) {
+        g.setEdge(prereqId, node.id);
+      }
+    });
+  });
+
+  // Calculate layout
+  dagre.layout(g);
+
+  // Apply calculated positions to nodes
+  return nodes.map(node => {
+    const positioned = g.node(node.id);
+    return {
+      ...node,
+      position: {
+        x: positioned.x,
+        y: positioned.y
+      }
+    };
+  });
+};

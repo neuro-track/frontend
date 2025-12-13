@@ -23,10 +23,10 @@ export const ChatFAB = () => {
       {/* Floating Action Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all flex items-center justify-center z-40 group"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors flex items-center justify-center z-40 group"
         aria-label="Open AI Chat"
       >
-        <MessageSquare size={24} className="group-hover:scale-110 transition-transform" />
+        <MessageSquare size={24} />
       </button>
 
       {/* Chat Modal */}

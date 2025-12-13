@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLearningStore } from '../store/useLearningStore';
 import { useAuthStore } from '../store/useAuthStore';
@@ -33,24 +33,31 @@ export const Dashboard = () => {
     loadRoadmap();
   }, [loadRoadmap]);
 
-  // Calculate stats based on roadmap or fall back to courses
-  const completedNodes = roadmap
-    ? roadmap.completedNodes
-    : courses.reduce(
-        (sum, c) => sum + c.nodes.filter(n => n.status === 'completed').length,
-        0
-      );
+  // Memoized calculations to prevent unnecessary re-computation
+  const { completedNodes, totalXP, currentLevel } = useMemo(() => {
+    const completed = roadmap
+      ? roadmap.completedNodes
+      : courses.reduce(
+          (sum, c) => sum + c.nodes.filter(n => n.status === 'completed').length,
+          0
+        );
+    const xp = completed * 100;
+    const level = Math.floor(xp / 500) + 1;
+
+    return { completedNodes: completed, totalXP: xp, currentLevel: level };
+  }, [roadmap, courses]);
 
   // Get other available courses (excluding first 2 shown in recommended)
-  const otherCourses = courses.slice(2);
+  const otherCourses = useMemo(() => courses.slice(2), [courses]);
 
   // Detect if user has generated roadmap
-  const hasGeneratedRoadmap = roadmap && roadmap.id.startsWith('generated-roadmap-');
+  const hasGeneratedRoadmap = useMemo(
+    () => roadmap && roadmap.id.startsWith('generated-roadmap-'),
+    [roadmap]
+  );
   const hasNoRoadmap = !hasGeneratedRoadmap;
 
   const streakDays = 7;
-  const totalXP = completedNodes * 100;
-  const currentLevel = Math.floor(totalXP / 500) + 1;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -149,7 +156,7 @@ export const Dashboard = () => {
 
         {/* AI-Generated Roadmap Badge */}
         {roadmap && roadmap.id.startsWith('generated-roadmap-') && profile.lastRoadmapGeneration && (
-          <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border-2 border-purple-300 dark:border-purple-700">
+          <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-600 dark:border-blue-400">
             <div className="flex items-center gap-3">
               <Sparkles size={24} className="text-purple-600 dark:text-purple-400" />
               <div>
@@ -172,9 +179,9 @@ export const Dashboard = () => {
 
         {/* CTA to Create Personalized Plan - Show when no generated roadmap */}
         {hasNoRoadmap && (
-          <div className="mb-6 p-6 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+          <div className="mb-6 p-6 bg-white dark:bg-gray-900 border-l-4 border-blue-600 dark:border-blue-400">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+              <div className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                 <Sparkles size={32} className="text-blue-600" />
               </div>
               <div className="flex-1">
@@ -187,7 +194,7 @@ export const Dashboard = () => {
                 </p>
                 <button
                   onClick={() => navigate('/chat')}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all shadow-sm hover:shadow-md"
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
                 >
                   Conversar com IA e Criar Plano
                 </button>
@@ -205,10 +212,10 @@ export const Dashboard = () => {
             {/* Roadmap Summary Card */}
             <div
               onClick={() => navigate('/learn')}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-8 text-white cursor-pointer hover:shadow-xl transition-all group"
+              className="bg-blue-600 rounded-xl p-8 text-white cursor-pointer hover:bg-blue-700 transition-colors group"
             >
               <div className="mb-4">
-                <h2 className="text-3xl font-bold mb-2 group-hover:scale-105 transition-transform">{roadmap.title}</h2>
+                <h2 className="text-3xl font-bold mb-2">{roadmap.title}</h2>
                 <p className="text-blue-100">{roadmap.description}</p>
               </div>
               <div className="flex items-center gap-6 text-sm mb-4">
@@ -245,7 +252,7 @@ export const Dashboard = () => {
                 return (
                   <div
                     key={course.id}
-                    className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 hover:shadow-lg dark:hover:shadow-gray-900/50 transition-all cursor-pointer group"
+                    className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 hover:border-blue-300 dark:hover:border-blue-700 transition-colors cursor-pointer group"
                     onClick={() => navigate(`/course/${course.id}`)}
                   >
                     <div className="flex items-start justify-between mb-4">
@@ -269,7 +276,7 @@ export const Dashboard = () => {
                       </div>
                       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                         <div
-                          className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all"
+                          className="bg-blue-600 h-2 rounded-full transition-all"
                           style={{ width: `${progressPercent}%` }}
                         />
                       </div>
@@ -307,9 +314,9 @@ export const Dashboard = () => {
                   <div
                     key={course.id}
                     onClick={() => navigate(`/course/${course.id}`)}
-                    className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden hover:shadow-lg dark:hover:shadow-gray-900/50 transition-all cursor-pointer group"
+                    className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden hover:border-blue-300 dark:hover:border-blue-700 transition-colors cursor-pointer group"
                   >
-                    <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <div className="aspect-video bg-blue-600 flex items-center justify-center">
                       <BookOpen className="w-16 h-16 text-white opacity-80" />
                     </div>
                     <div className="p-5">

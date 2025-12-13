@@ -81,7 +81,7 @@ export function SearchModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center pt-20">
-      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl w-full max-w-2xl mx-4">
+      <div className="bg-white dark:bg-gray-900 rounded-lg border-2 border-gray-200 dark:border-gray-800 w-full max-w-2xl mx-4">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3">
           <Search className="w-5 h-5 text-gray-400" />
           <input
