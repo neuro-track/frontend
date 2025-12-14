@@ -67,7 +67,7 @@ export const LessonScreen = () => {
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft size={20} />
-            <span className="text-sm font-medium">Back to Course</span>
+            <span className="text-sm font-medium">Voltar ao Curso</span>
           </button>
         </div>
       </header>
@@ -249,7 +249,7 @@ export const LessonScreen = () => {
                 }`}
               >
                 <ChevronLeft size={20} />
-                Previous
+                Anterior
               </button>
               <button
                 onClick={() => nextNode && handleNavigate(nextNode.id)}
@@ -260,7 +260,7 @@ export const LessonScreen = () => {
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
               >
-                Next
+                Próximo
                 <ChevronRight size={20} />
               </button>
             </div>
@@ -269,7 +269,7 @@ export const LessonScreen = () => {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg border border-gray-200 p-6 sticky top-8">
-              <h3 className="font-semibold text-gray-900 mb-4">Course Content</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">Conteúdo do Curso</h3>
               <div className="space-y-2 max-h-[600px] overflow-y-auto">
                 {course.nodes.map((n, index) => {
                   const isActive = n.id === nodeId;

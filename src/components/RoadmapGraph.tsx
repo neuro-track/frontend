@@ -345,21 +345,21 @@ export const RoadmapGraph = ({ nodes, onNodeClick, selectedNodeId }: RoadmapGrap
         <button
           onClick={() => handleZoom(0.2)}
           className="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
-          title="Zoom In"
+          title="Aumentar Zoom"
         >
           <ZoomIn size={20} className="text-gray-700" />
         </button>
         <button
           onClick={() => handleZoom(-0.2)}
           className="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
-          title="Zoom Out"
+          title="Diminuir Zoom"
         >
           <ZoomOut size={20} className="text-gray-700" />
         </button>
         <button
           onClick={handleReset}
           className="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
-          title="Reset View"
+          title="Resetar Visualização"
         >
           <Maximize2 size={20} className="text-gray-700" />
         </button>
@@ -371,19 +371,19 @@ export const RoadmapGraph = ({ nodes, onNodeClick, selectedNodeId }: RoadmapGrap
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-green-600"></div>
-            <span className="text-xs text-gray-700">Completed</span>
+            <span className="text-xs text-gray-700">Concluído</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-blue-600"></div>
-            <span className="text-xs text-gray-700">In Progress</span>
+            <span className="text-xs text-gray-700">Em Progresso</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-gray-900"></div>
-            <span className="text-xs text-gray-700">Available</span>
+            <span className="text-xs text-gray-700">Disponível</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-gray-300"></div>
-            <span className="text-xs text-gray-700">Locked</span>
+            <span className="text-xs text-gray-700">Bloqueado</span>
           </div>
         </div>
       </div>
@@ -391,7 +391,7 @@ export const RoadmapGraph = ({ nodes, onNodeClick, selectedNodeId }: RoadmapGrap
       {/* Instructions */}
       <div className="absolute bottom-4 right-4 bg-white rounded-lg border border-gray-200 px-4 py-2 shadow-sm">
         <p className="text-xs text-gray-600">
-          <span className="font-medium">Tip:</span> Drag to pan • Scroll to zoom
+          <span className="font-medium">Dica:</span> Arraste para mover • Role para zoom
         </p>
       </div>
     </div>
