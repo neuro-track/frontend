@@ -48,6 +48,22 @@ resource "google_secret_manager_secret" "openai_key" {
   depends_on = [google_project_service.secretmanager]
 }
 
+resource "google_secret_manager_secret" "supabase_url" {
+  secret_id = "vite-supabase-url"
+  replication { 
+    auto {} 
+    }
+  depends_on = [google_project_service.secretmanager]
+}
+
+resource "google_secret_manager_secret" "supabase_anon_key" {
+  secret_id = "vite-supabase-anon-key"
+  replication { 
+    auto {} 
+  }
+  depends_on = [google_project_service.secretmanager]
+}
+
 resource "google_secret_manager_secret_iam_member" "build_access_youtube" {
   secret_id = google_secret_manager_secret.youtube_key.id
   role      = "roles/secretmanager.secretAccessor"
@@ -60,9 +76,21 @@ resource "google_secret_manager_secret_iam_member" "build_access_openai" {
   member    = "serviceAccount:arthur@isn2025-2.iam.gserviceaccount.com"
 }
 
+resource "google_secret_manager_secret_iam_member" "build_access_supabase_url" {
+  secret_id = google_secret_manager_secret.supabase_url.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:arthur@isn2025-2.iam.gserviceaccount.com"
+}
+
+resource "google_secret_manager_secret_iam_member" "build_access_supabase_anon_key" {
+  secret_id = google_secret_manager_secret.supabase_anon_key.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:arthur@isn2025-2.iam.gserviceaccount.com"
+}
+
 
 resource "google_firestore_database" "database" {
-  name             = "neuro2"
+  name             = "neuro3"
   location_id      = var.region
   type             = "FIRESTORE_NATIVE"
   database_edition = "ENTERPRISE"
