@@ -24,10 +24,13 @@ class ContentGeneratorService {
     wikipediaService.setLanguage(language);
 
     try {
+      // Melhorar query de busca de vídeos para ser mais específico e educacional
+      const enhancedQuery = this.buildEnhancedVideoQuery(topic, language);
+
       // Buscar vídeos e artigo em paralelo
       const [videos, article] = await Promise.all([
         youtubeService.searchVideos({
-          query: `${topic} tutorial ${language === 'pt' ? 'português' : 'english'}`,
+          query: enhancedQuery,
           maxResults: maxVideos,
           order: 'relevance',
           videoDuration: options?.videoDuration,
@@ -143,10 +146,13 @@ class ContentGeneratorService {
       const language = 'pt';
       wikipediaService.setLanguage(language);
 
+      // Enhanced query for better video relevance
+      const enhancedQuery = this.buildEnhancedVideoQuery(topic, language);
+
       // Search for educational resources in parallel
       const [videos, wikipediaResults] = await Promise.all([
         youtubeService.searchVideos({
-          query: `${topic} tutorial ${language === 'pt' ? 'português' : ''}`,
+          query: enhancedQuery,
           maxResults: 3,
           order: 'relevance',
           language,
@@ -350,6 +356,73 @@ class ContentGeneratorService {
         explanation: 'Auto-avaliação de compreensão',
       },
     ];
+  }
+
+  /**
+   * Build enhanced video search query for better relevance
+   */
+  private buildEnhancedVideoQuery(topic: string, language: 'en' | 'pt'): string {
+    // Map of common programming topics to better search terms
+    const topicEnhancements: Record<string, string> = {
+      // Frontend
+      'react': 'React tutorial completo iniciantes',
+      'vue': 'Vue.js tutorial completo',
+      'angular': 'Angular tutorial completo',
+      'javascript': 'JavaScript curso completo',
+      'typescript': 'TypeScript tutorial',
+      'html': 'HTML5 tutorial completo',
+      'css': 'CSS3 tutorial completo',
+
+      // Backend
+      'node': 'Node.js tutorial completo',
+      'nodejs': 'Node.js tutorial completo',
+      'express': 'Express.js tutorial API REST',
+      'python': 'Python curso completo',
+      'django': 'Django tutorial completo',
+      'flask': 'Flask tutorial',
+      'php': 'PHP tutorial completo',
+
+      // Database
+      'sql': 'SQL tutorial completo banco de dados',
+      'mysql': 'MySQL tutorial completo',
+      'postgresql': 'PostgreSQL tutorial',
+      'mongodb': 'MongoDB tutorial completo',
+
+      // DevOps
+      'docker': 'Docker tutorial completo containers',
+      'kubernetes': 'Kubernetes tutorial',
+      'git': 'Git e GitHub tutorial completo',
+
+      // Mobile
+      'react native': 'React Native tutorial app mobile',
+      'flutter': 'Flutter tutorial completo',
+
+      // Others
+      'api': 'API REST tutorial completo',
+      'graphql': 'GraphQL tutorial completo',
+    };
+
+    const topicLower = topic.toLowerCase();
+
+    // Check if we have a specific enhancement
+    for (const [key, enhancement] of Object.entries(topicEnhancements)) {
+      if (topicLower.includes(key)) {
+        return language === 'pt' ? enhancement : enhancement.replace(/tutorial|curso/g, 'tutorial');
+      }
+    }
+
+    // Default: topic + educational keywords
+    const educationalKeywords = language === 'pt'
+      ? ['tutorial', 'curso', 'aula', 'completo', 'passo a passo']
+      : ['tutorial', 'course', 'complete', 'step by step', 'guide'];
+
+    // Pick 2-3 random educational keywords for variety
+    const selectedKeywords = educationalKeywords
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 2)
+      .join(' ');
+
+    return `${topic} ${selectedKeywords}`;
   }
 }
 

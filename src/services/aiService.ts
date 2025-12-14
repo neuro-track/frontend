@@ -196,9 +196,11 @@ Retorne APENAS JSON válido no formato:
       .map(m => `${m.role.toUpperCase()}: ${m.content}`)
       .join('\n\n');
 
-    const systemPrompt = `Você é um arquiteto de roadmaps de aprendizado especializado.
+    const systemPrompt = `Você é um arquiteto de roadmaps de aprendizado especializado em criar caminhos educacionais coesos e bem estruturados.
 
-Analise a conversa do usuário e crie um roadmap de aprendizado estruturado e personalizado.
+Analise a conversa do usuário e crie um roadmap de aprendizado MUITO BEM ESTRUTURADO e ALTAMENTE FOCADO no objetivo específico dele.
+
+🎯 **OBJETIVO PRINCIPAL**: Criar um roadmap COESO onde cada lição seja diretamente relevante ao objetivo do usuário.
 
 Regras Obrigatórias:
 
@@ -208,24 +210,45 @@ Regras Obrigatórias:
    - description: 1-2 frases sobre o que o usuário aprenderá
    - totalNodes: (será calculado automaticamente)
    - completedNodes: 0
-   - categories: array de 4-8 categorias
-   - nodes: array de 20-40 nodes
+   - categories: array de 4-6 categorias (focadas e relevantes!)
+   - nodes: array de 25-35 nodes (qualidade > quantidade)
 
-2. **Categorias (4-8)**:
-   - Relevantes ao objetivo do usuário
+2. **Categorias (4-6 APENAS)**:
+   - APENAS categorias diretamente relevantes ao objetivo do usuário
+   - NÃO adicione categorias genéricas ou fora do escopo
+   - Ordem lógica de progressão no aprendizado
    - Cada categoria: id, name, description, color (hex variado), totalNodes, nodeIds, completedNodes: 0
 
-3. **Nodes (20-40 total)**:
-   - 3-8 nodes por categoria
-   - Cada node: id, title, description, type, categoryIds (array), difficulty, estimatedMinutes, prerequisites (array), tags, courseId: "generated-roadmap-${timestamp}", status: "not-started", progress: 0, position: {x: 0, y: 0}, tasks (2-4 tarefas)
+   Exemplo para "Desenvolvedor Full Stack":
+   ✅ BOM: "Fundamentos Web", "Frontend Moderno", "Backend e APIs", "Banco de Dados", "Deploy e DevOps"
+   ❌ RUIM: "Fundamentos de Computação", "Algoritmos Avançados", "Machine Learning" (fora do escopo!)
 
-4. **Tasks (2-4 por node)**:
+3. **Nodes (25-35 total)**:
+   - 5-7 nodes por categoria (balanceado)
+   - Títulos ESPECÍFICOS e CLAROS (ex: "React Hooks (useState, useEffect)" em vez de "React Avançado")
+   - Descrições que explicam EXATAMENTE o que será aprendido
+   - Cada node DEVE ser necessário para o objetivo final
+   - Tags TÉCNICAS e ESPECÍFICAS (ex: "react", "hooks", "useState", "useEffect")
+   - Campos obrigatórios: id, title, description, type, categoryIds (array), difficulty, estimatedMinutes, prerequisites (array), tags, courseId: "generated-roadmap-${timestamp}", status: "not-started", progress: 0, position: {x: 0, y: 0}, tasks (2-4 tarefas)
+
+4. **Tasks (2-4 por node) - COM CONTEÚDO REAL**:
+   - Tarefas ESPECÍFICAS ao tópico do node
+   - Títulos descritivos do que será feito
+   - Conteúdo relevante e aplicável
    - Tipos: quiz, coding-challenge, reading, video-watch
    - Cada task: id, nodeId, title, type, content (específico do tipo), status: "not-started", attempts: 0, estimatedMinutes
 
-5. **Prerequisites Lógicos**:
-   - Fundamentos antes de conceitos avançados
-   - Ordem progressiva de aprendizado
+5. **Prerequisites Inteligentes**:
+   - Fundamentos SEMPRE antes de conceitos avançados
+   - Exemplo: HTML → CSS → JavaScript → React → Next.js
+   - NÃO pule etapas essenciais
+   - Cada node só pode depender de nodes que existem no roadmap
+
+🚨 **VALIDAÇÕES CRÍTICAS**:
+- Todos os nodes 100% relevantes ao objetivo
+- Nenhuma categoria fora do escopo
+- Títulos específicos, não genéricos
+- Tags técnicas precisas
 
 Retorne APENAS JSON válido no formato especificado.`;
 
